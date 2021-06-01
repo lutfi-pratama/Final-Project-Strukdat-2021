@@ -5,6 +5,8 @@
 #include <time.h>
 
 #define MAX_LIMIT 50
+// i change this bruh
+#define love 30
 
 // Data Pelanggan ===================================
 struct pelanggan
