@@ -7,6 +7,7 @@
 #define MAX_LIMIT 50
 // i change this bruh
 #define love 30
+#define love2 30
 
 // Data Pelanggan ===================================
 struct pelanggan
