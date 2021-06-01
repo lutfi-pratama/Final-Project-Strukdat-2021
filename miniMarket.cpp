@@ -8,6 +8,8 @@
 // i change this bruh
 #define love 30
 #define love2 30
+#define love3 30
+#define love4 40
 
 // Data Pelanggan ===================================
 struct pelanggan
