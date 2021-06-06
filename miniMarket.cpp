@@ -89,124 +89,15 @@ void tranverseBarJul(barangJual *head2);
 void deleteList(pelanggan *head, barangJual *head2, stack *head3, queue *myQueue);
 
 // Barang Jual (Queue)
-queue createQueue(void)
-{
-    queue myQueue;
+queue createQueue(void);
 
-    myQueue.count = 0;
-    myQueue.front = NULL;
-    myQueue.rear = NULL;
-    return (myQueue);
-}
+int checkEmpty(queue *myQueue);
 
-int checkEmpty(queue *myQueue)
-{
-    if (myQueue->front == NULL)
-    {
-        return 1;
-    }
-    else
-    {
-        return 0;
-    }
-}
+void tranverseBarangGudang(queue myQueue);
 
-void tranverseBarangGudang(queue myQueue)
-{
-    system("cls");
+void enqueueBarangGudang(queue *myQueue);
 
-    barang *temp;
-
-    temp = myQueue.front;
-    printf("List barang dari front (siap ambil) ke rear (ambil akhir):\n");
-    printf("_____________________________________________________________\n");
-    while (temp)
-    {
-        printf("%s (exp: %d, %d)\t(stok: %d)\n", temp->namaBarang, temp->expBulanBarang, temp->expTahunBarang, temp->stokBarang);
-        temp = temp->next;
-    }
-}
-
-void enqueueBarangGudang(queue *myQueue)
-{
-    system("cls");
-
-    if (myQueue->count >= 20)
-    {
-        printf("\n_______ Stok Gudang Penuh _______\n");
-        printf("\n");
-    }
-    else
-    {
-        int bulanExpired, tahunExpired, stokBarang;
-        char namaBarang[MAX_LIMIT];
-
-        barang *temp;
-        temp = (barang *)malloc(sizeof(barang));
-
-        fflush(stdin);
-        printf("Masukkan nama barang : ");
-        fflush(stdin);
-        scanf("%[^\n]%*c", namaBarang);
-        fflush(stdin);
-        printf("Bulan expired barang : ");
-        fflush(stdin);
-        scanf("%d", &bulanExpired);
-        fflush(stdin);
-        printf("Tahun expired barang : ");
-        fflush(stdin);
-        scanf("%d", &tahunExpired);
-        fflush(stdin);
-        printf("Stok barang : ");
-        fflush(stdin);
-        scanf("%d", &stokBarang);
-        fflush(stdin);
-
-        strcpy(temp->namaBarang, namaBarang);
-        temp->expBulanBarang = bulanExpired;
-        temp->expTahunBarang = tahunExpired;
-        temp->stokBarang = stokBarang;
-        temp->next = NULL;
-
-        if (checkEmpty(myQueue))
-        {
-            myQueue->front = temp;
-        }
-        else
-        {
-            myQueue->rear->next = temp;
-        }
-
-        myQueue->rear = temp;
-        myQueue->count++;
-
-        printf("\nenqueue berhasil\n");
-    }
-}
-
-void dequeueBarangGudang(queue *myQueue)
-{
-    char namaBarang[MAX_LIMIT];
-
-    if (myQueue->count == 0)
-    {
-        printf("\nQueue is empty (Barang gudang sedang kosong)\n");
-    }
-    else
-    {
-        
-
-        barang *delNodeBarang;
-        delNodeBarang = myQueue->front;
-        strcpy(namaBarang, delNodeBarang->namaBarang);
-        myQueue->front = myQueue->front->next;
-        free(delNodeBarang);
-        myQueue->count--;
-
-        printf("Barang --%s--, telah dipindahkan dari gudang\n\n", namaBarang);
-        printf("\n___________________________________________________\n");
-    }
-}
+void dequeueBarangGudang(queue *myQueue);
 
 // =====================================================  Main
 
@@ -329,7 +220,7 @@ void insertNode(pelanggan **head, pelanggan *pPre, pelanggan *pNew)
         pPre->next = pNew;
     }
 }
-
+    
 void tranverse(pelanggan *head)
 {
     system("cls");
@@ -527,7 +418,7 @@ void addBarangJual(barangJual **head2, queue *myQueue)
     {
         if (tempQueue->expTahunBarang <= tahunExpired)
         {
-            // tambah deque berdasarkan expired 
+            // tambah deque berdasarkan expired
             if (tempQueue->expBulanBarang <= bulanExpired || tempQueue->expTahunBarang < tahunExpired)
             { // cek dibawah bulan dan tahun yang ditentukan
                 //Inti code add barang
@@ -590,7 +481,6 @@ void addBarangJual(barangJual **head2, queue *myQueue)
                 }
 
                 dequeueBarangGudang(myQueue);
-
             }
             else
                 break;
@@ -690,6 +580,8 @@ void popBarangJual(barangJual **head2)
     *head2 = (*head2)->next;
     free(temp);
 }
+
+// DOOR PRIZE
 
 stack createStack(void)
 {
@@ -816,6 +708,126 @@ void showPrize(stack *head3)
     }
 
     printf("\n\t+---+ bottom\n");
+}
+
+// BARANG GUDANG
+
+queue createQueue(void)
+{
+    queue myQueue;
+
+    myQueue.count = 0;
+    myQueue.front = NULL;
+    myQueue.rear = NULL;
+    return (myQueue);
+}
+
+int checkEmpty(queue *myQueue)
+{
+    if (myQueue->front == NULL)
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+void tranverseBarangGudang(queue myQueue)
+{
+    system("cls");
+
+    barang *temp;
+
+    temp = myQueue.front;
+    printf("List barang dari front (siap ambil) ke rear (ambil akhir):\n");
+    printf("_____________________________________________________________\n");
+    while (temp)
+    {
+        printf("%s (exp: %d, %d)\t(stok: %d)\n", temp->namaBarang, temp->expBulanBarang, temp->expTahunBarang, temp->stokBarang);
+        temp = temp->next;
+    }
+}
+
+void enqueueBarangGudang(queue *myQueue)
+{
+    system("cls");
+
+    if (myQueue->count >= 20)
+    {
+        printf("\n_______ Stok Gudang Penuh _______\n");
+        printf("\n");
+    }
+    else
+    {
+        int bulanExpired, tahunExpired, stokBarang;
+        char namaBarang[MAX_LIMIT];
+
+        barang *temp;
+        temp = (barang *)malloc(sizeof(barang));
+
+        fflush(stdin);
+        printf("Masukkan nama barang : ");
+        fflush(stdin);
+        scanf("%[^\n]%*c", namaBarang);
+        fflush(stdin);
+        printf("Bulan expired barang : ");
+        fflush(stdin);
+        scanf("%d", &bulanExpired);
+        fflush(stdin);
+        printf("Tahun expired barang : ");
+        fflush(stdin);
+        scanf("%d", &tahunExpired);
+        fflush(stdin);
+        printf("Stok barang : ");
+        fflush(stdin);
+        scanf("%d", &stokBarang);
+        fflush(stdin);
+
+        strcpy(temp->namaBarang, namaBarang);
+        temp->expBulanBarang = bulanExpired;
+        temp->expTahunBarang = tahunExpired;
+        temp->stokBarang = stokBarang;
+        temp->next = NULL;
+
+        if (checkEmpty(myQueue))
+        {
+            myQueue->front = temp;
+        }
+        else
+        {
+            myQueue->rear->next = temp;
+        }
+
+        myQueue->rear = temp;
+        myQueue->count++;
+
+        printf("\nenqueue berhasil\n");
+    }
+}
+
+void dequeueBarangGudang(queue *myQueue)
+{
+    char namaBarang[MAX_LIMIT];
+
+    if (myQueue->count == 0)
+    {
+        printf("\nQueue is empty (Barang gudang sedang kosong)\n");
+    }
+    else
+    {
+
+        barang *delNodeBarang;
+        delNodeBarang = myQueue->front;
+        strcpy(namaBarang, delNodeBarang->namaBarang);
+        myQueue->front = myQueue->front->next;
+        free(delNodeBarang);
+        myQueue->count--;
+
+        printf("Barang --%s--, telah dipindahkan dari gudang\n\n", namaBarang);
+        printf("\n___________________________________________________\n");
+    }
 }
 
 void deleteList(pelanggan *head, barangJual *head2, stack *head3, queue *myQueue)
