@@ -5,9 +5,7 @@
 #include <time.h>
 
 #define MAX_LIMIT 50
-// i change this bruh
-#define love 30
-#define love2 30
+#define MIN_LIMIT 50
 
 // Data Pelanggan ===================================
 struct pelanggan
@@ -36,7 +34,8 @@ typedef struct barangJual barangJual;
 struct barang
 {
     char namaBarang[MAX_LIMIT];
-    int masaBarang;
+    int expBulanBarang;
+    int expTahunBarang;
     int stokBarang;
     struct barang *next;
 };
@@ -123,7 +122,7 @@ void tranverseBarangGudang(queue myQueue)
     printf("_____________________________________________________________\n");
     while (temp)
     {
-        printf("%s (exp: %d)\t(stok: %d)\n", temp->namaBarang, temp->masaBarang, temp->stokBarang);
+        printf("%s (exp: %d, %d)\t(stok: %d)\n", temp->namaBarang, temp->expBulanBarang, temp->expTahunBarang, temp->stokBarang);
         temp = temp->next;
     }
 }
@@ -139,7 +138,7 @@ void enqueueBarangGudang(queue *myQueue)
     }
     else
     {
-        int masaTenggang, stokBarang;
+        int bulanExpired, tahunExpired, stokBarang;
         char namaBarang[MAX_LIMIT];
 
         barang *temp;
@@ -150,9 +149,13 @@ void enqueueBarangGudang(queue *myQueue)
         fflush(stdin);
         scanf("%[^\n]%*c", namaBarang);
         fflush(stdin);
-        printf("Masa tenggang barang : ");
+        printf("Bulan expired barang : ");
         fflush(stdin);
-        scanf("%d", &masaTenggang);
+        scanf("%d", &bulanExpired);
+        fflush(stdin);
+        printf("Tahun expired barang : ");
+        fflush(stdin);
+        scanf("%d", &tahunExpired);
         fflush(stdin);
         printf("Stok barang : ");
         fflush(stdin);
@@ -160,7 +163,8 @@ void enqueueBarangGudang(queue *myQueue)
         fflush(stdin);
 
         strcpy(temp->namaBarang, namaBarang);
-        temp->masaBarang = masaTenggang;
+        temp->expBulanBarang = bulanExpired;
+        temp->expTahunBarang = tahunExpired;
         temp->stokBarang = stokBarang;
         temp->next = NULL;
 
@@ -190,6 +194,8 @@ void dequeueBarangGudang(queue *myQueue)
     }
     else
     {
+        
+
         barang *delNodeBarang;
         delNodeBarang = myQueue->front;
         strcpy(namaBarang, delNodeBarang->namaBarang);
@@ -197,7 +203,8 @@ void dequeueBarangGudang(queue *myQueue)
         free(delNodeBarang);
         myQueue->count--;
 
-        printf("\nBarang --%s--, dipindahkan dari gudang\n\n", namaBarang);
+        printf("Barang --%s--, telah dipindahkan dari gudang\n\n", namaBarang);
+        printf("\n___________________________________________________\n");
     }
 }
 
@@ -489,8 +496,14 @@ void addBarangJual(barangJual **head2, queue *myQueue)
 {
     system("cls");
 
-    int n_stok;
-    char name[MAX_LIMIT];
+    if (myQueue->count == 0)
+    {
+        printf("\nTambahkan dahulu stok di Gudang\n");
+        printf("_________________________________\n\n");
+        return;
+    }
+
+    int n_stok, bulanExpired, tahunExpired;
     long long int harga;
 
     barangJual *temp, *pNew;
@@ -498,98 +511,103 @@ void addBarangJual(barangJual **head2, queue *myQueue)
     tempQueue = myQueue->front;
 
     fflush(stdin);
-    printf("Masukkan nama barang : ");
+    printf("Tentukan batas expired barang untuk dijual \n");
+    printf("___________________________________________\n");
     fflush(stdin);
-    scanf("%[^\n]%*c", name);
+    printf("Bulan : ");
     fflush(stdin);
-    printf("Stok barang : ");
+    scanf("%d", &bulanExpired);
     fflush(stdin);
-    scanf("%d", &n_stok);
+    printf("Tahun : ");
     fflush(stdin);
-    printf("Harga per-satuan barang : ");
-    fflush(stdin);
-    scanf("%ld", &harga);
+    scanf("%d", &tahunExpired);
     fflush(stdin);
 
-    while (tempQueue) // cek (searching) queue barang digudang      (diskusikan)
+    while (tempQueue)
     {
-        if (strcmp(name, tempQueue->namaBarang) == 0)
+        if (tempQueue->expTahunBarang <= tahunExpired)
         {
-            if (tempQueue->stokBarang == 0) // kondisi saat stok barang gudang habis
-            {
-                dequeueBarangGudang(myQueue); // masih error
-            }
-            else if (n_stok > tempQueue->stokBarang)
-            {
-                printf("\n___ Barang Jual gagal ditambahkan ___\n\n");
-                printf("\n~ Pastikan stok barang gudang mencukupi\n");
+            // tambah deque berdasarkan expired 
+            if (tempQueue->expBulanBarang <= bulanExpired || tempQueue->expTahunBarang < tahunExpired)
+            { // cek dibawah bulan dan tahun yang ditentukan
+                //Inti code add barang
 
-                return;
-            }
+                fflush(stdin);
+                printf("\n%s, (stok: %d) --- Berhasil ditambahkan ke Market\n\n ", tempQueue->namaBarang, tempQueue->stokBarang);
+                printf("Tentukan harga per-satuan barang : ");
+                fflush(stdin);
+                scanf("%lld", &harga);
+                fflush(stdin);
 
+                if ((*head2) == NULL) // menambah saat stok di market kosong
+                {
+                    temp = (barangJual *)malloc(sizeof(barangJual));
+
+                    if (temp != NULL)
+                    {
+                        temp->prev = NULL;
+                        strcpy(temp->namaBarJul, tempQueue->namaBarang);
+                        temp->stok = tempQueue->stokBarang;
+                        temp->harga = harga;
+                        temp->next = NULL;
+                        (*head2) = temp;
+
+                        printf("\n--- Berhasil ditambahkan ---\n\n");
+                    }
+                    else
+                    {
+                        printf("Alokasi memori gagal");
+                    }
+                }
+                else // menambah waktu stok di market ada
+                {
+                    temp = (*head2);
+
+                    pNew = (barangJual *)malloc(sizeof(barangJual));
+
+                    pNew->prev = NULL;
+                    strcpy(pNew->namaBarJul, tempQueue->namaBarang);
+                    pNew->stok = tempQueue->stokBarang;
+                    pNew->harga = harga;
+                    pNew->next = NULL;
+
+                    while (temp->next != NULL)
+                    {
+                        temp = temp->next;
+                    }
+
+                    if (pNew != NULL)
+                    {
+                        temp->next = pNew;
+                        pNew->prev = temp;
+
+                        printf("\n--- Berhasil ditambahkan ---\n\n");
+                    }
+                    else
+                    {
+                        printf("Alokasi memori gagal");
+                    }
+                }
+
+                dequeueBarangGudang(myQueue);
+
+            }
+            else
+                break;
+
+            if (tempQueue->next != NULL)
+            {
+                if (tempQueue->next->expTahunBarang > tahunExpired) // saat next tahun exp gudang lebih dari exp inputs
+                    break;
+            }
+        }
+
+        if (tempQueue->expTahunBarang > tahunExpired)
+        { // cek ketika masukan expired tidak dengan stok barang Gudang
+            printf("\nStok barang dibawah expired tersebut tidak tersedia di Gudang Barang\n");
             break;
         }
-        else if (tempQueue->next == NULL)
-        {
-            printf("\n--- Gagal\n");
-            printf("--- Barang tidak tersedia di Gudang ---\n\n");
-            return;
-        }
         tempQueue = tempQueue->next;
-    }
-
-    if ((*head2) == NULL) // menambah saat stok di market kosong
-    {
-        temp = (barangJual *)malloc(sizeof(barangJual));
-
-        if (temp != NULL)
-        {
-            temp->prev = NULL;
-            strcpy(temp->namaBarJul, name);
-            temp->stok = n_stok;
-            temp->harga = harga;
-            temp->next = NULL;
-            (*head2) = temp;
-
-            myQueue->front->stokBarang -= n_stok; //mengurangi stok gudang
-
-            printf("\n--- Berhasil ditambahkan ---\n\n");
-        }
-        else
-        {
-            printf("Alokasi memori gagal");
-        }
-    }
-    else // menambah waktu stok di market ada
-    {
-        temp = (*head2);
-
-        pNew = (barangJual *)malloc(sizeof(barangJual));
-
-        pNew->prev = NULL;
-        strcpy(pNew->namaBarJul, name);
-        pNew->stok = n_stok;
-        pNew->harga = harga;
-        pNew->next = NULL;
-
-        while (temp->next != NULL)
-        {
-            temp = temp->next;
-        }
-
-        if (pNew != NULL)
-        {
-            temp->next = pNew;
-            pNew->prev = temp;
-
-            myQueue->front->stokBarang -= n_stok; //mengurangi stok gudang
-
-            printf("\n--- Berhasil ditambahkan ---\n\n");
-        }
-        else
-        {
-            printf("Alokasi memori gagal");
-        }
     }
 }
 
