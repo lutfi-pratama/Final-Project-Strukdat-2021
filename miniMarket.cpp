@@ -479,7 +479,7 @@ void addBarangJual(barangJual **head2, queue *myQueue)
                     }
                 }
 
-                dequeueBarangGudang(myQueue);
+                dequeueBarangGudang(myQueue);   // kurang stok gudang (dequeue)
             }
             else
                 break;
