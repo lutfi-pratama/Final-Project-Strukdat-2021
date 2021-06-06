@@ -5,7 +5,6 @@
 #include <time.h>
 
 #define MAX_LIMIT 50
-#define MIN_LIMIT 50
 
 // Data Pelanggan ===================================
 struct pelanggan
@@ -220,7 +219,7 @@ void insertNode(pelanggan **head, pelanggan *pPre, pelanggan *pNew)
         pPre->next = pNew;
     }
 }
-    
+
 void tranverse(pelanggan *head)
 {
     system("cls");
