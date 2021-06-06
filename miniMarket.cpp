@@ -89,13 +89,9 @@ void deleteList(pelanggan *head, barangJual *head2, stack *head3, queue *myQueue
 
 // Barang Jual (Queue)
 queue createQueue(void);
-
 int checkEmpty(queue *myQueue);
-
 void tranverseBarangGudang(queue myQueue);
-
 void enqueueBarangGudang(queue *myQueue);
-
 void dequeueBarangGudang(queue *myQueue);
 
 // =====================================================  Main
