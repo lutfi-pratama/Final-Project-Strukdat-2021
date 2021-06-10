@@ -22,6 +22,7 @@ typedef struct pelanggan pelanggan;
 struct barangJual
 {
     struct barangJual *prev;
+    int kodeBarJul;
     char namaBarJul[MAX_LIMIT];
     int stok;
     long long int harga;
@@ -32,6 +33,7 @@ typedef struct barangJual barangJual;
 // Data Barang Gudang (Queue) ================================
 struct barang
 {
+    int kodeBarang;
     char namaBarang[MAX_LIMIT];
     int expBulanBarang;
     int expTahunBarang;
@@ -64,13 +66,22 @@ struct stack
 };
 typedef struct stack stack;
 
+// Data Diskon Barang Market (Tree) ============================
+struct diskon
+{
+    int idBarangDiskon;
+    int persenDiskon;
+    struct diskon *left;
+    struct diskon *right;
+};
+
 //Pelanggan
-void insertP(pelanggan **head, barangJual **head2, stack *head3);
+void insertP(pelanggan **head, barangJual **head2, stack *head3, struct diskon **root);
 
 //Barang Jual
-void addBarangJual(barangJual **head2, queue *myQueue);
+void addBarangJual(barangJual **head2, queue *myQueue, struct diskon **root);
 void decreaseStok(barangJual **head2, char barang[][MAX_LIMIT], int jumlah[], int i);
-void catatHarga(barangJual **head2, char barang[][MAX_LIMIT], long long int *total, int i, int jumlah[]);
+void catatHarga(barangJual **head2, char barang[][MAX_LIMIT], long long int *total, int i, int jumlah[], int diskonBarang);
 void popBarangJual(barangJual **head2); // not use
 
 //Doorprize (stack)
@@ -85,7 +96,8 @@ void showPrize(stack *head3);
 void insertNode(pelanggan **head, pelanggan *pPre, pelanggan *pNew);
 void tranverse(pelanggan *head);
 void tranverseBarJul(barangJual *head2);
-void deleteList(pelanggan *head, barangJual *head2, stack *head3, queue *myQueue);
+void deleteList(pelanggan *head, barangJual *head2, stack *head3, queue *myQueue, struct diskon **delNode);
+void deleteTree(struct diskon *delNode);
 
 // Barang Jual (Queue)
 queue createQueue(void);
@@ -93,6 +105,14 @@ int checkEmpty(queue *myQueue);
 void tranverseBarangGudang(queue myQueue);
 void enqueueBarangGudang(queue *myQueue);
 void dequeueBarangGudang(queue *myQueue);
+
+// Diskon Barang (Tree)
+struct diskon *newNode(int id, int banyakDiskon);
+struct diskon *insertNode(struct diskon *diskon, int id, int banyakDiskon);
+int searchTree(struct diskon *root, int id);
+int searchNode(barangJual **head2, struct diskon *root, char barang[][MAX_LIMIT], int i);
+// Inorder Tranversal
+void tranverseTree(struct diskon *root);
 
 // =====================================================  Main
 
@@ -110,6 +130,10 @@ int main()
     // queue barang gudang
     queue myQueue;
     myQueue = createQueue();
+    // tree diskon barang market
+    struct diskon *root = NULL;
+    //coba
+    // root = insertNode(root, 1, 10);
 
     int choice, choice2, success;
 
@@ -118,9 +142,10 @@ int main()
         system("cls");
         printf("\n\t Program Mini Market \n");
         printf("\n====================================\n");
-        printf("\n1. Penjualan");         // almost clear
-        printf("\n2. Riwayat Penjualan"); // almost clear
-        printf("\n3. Kelola Barang");     // on progres
+        printf("\n1. Penjualan");                 // almost clear
+        printf("\n2. Riwayat Penjualan");         // almost clear
+        printf("\n3. Kelola Barang");             // almost clear
+        printf("\n4. Daftar Diskon Barang Jual"); // clear
         printf("\n0. Exit");
         printf("\n\nMasukkan pilihan Anda: ");
         scanf("%d", &choice);
@@ -129,7 +154,7 @@ int main()
         switch (choice)
         {
         case 1:
-            insertP(&head, &head2, &head3);
+            insertP(&head, &head2, &head3, &root);
             break;
         case 2:
             tranverse(head);
@@ -143,9 +168,9 @@ int main()
             printf("\n2. Tambah stok barang jual di Market\n"); // almost clear
             printf("\n3. Lihat stok doorprize");                // clear
             printf("\n4. Tambah stok doorprize\n");             // clear
-            printf("\n5. Lihat stok barang jual di Gudang");    // on progres
-            printf("\n6. Tambah stok barang di Gudang\n");      // on progres
-            printf("\n0. Kembali");                             // on progres
+            printf("\n5. Lihat stok barang jual di Gudang");    // clear
+            printf("\n6. Tambah stok barang di Gudang\n");      // clear
+            printf("\n0. Kembali");
             printf("\n\nMasukkan pilihan Anda: ");
             scanf("%d", &choice2);
             printf("\n\n");
@@ -157,7 +182,7 @@ int main()
                 getch();
                 break;
             case 2:
-                addBarangJual(&head2, &myQueue);
+                addBarangJual(&head2, &myQueue, &root);
                 getch();
                 break;
             case 3:
@@ -168,6 +193,14 @@ int main()
                 addPrize(&head3);
                 getch();
                 break;
+            case 5:
+                tranverseBarangGudang(myQueue);
+                getch();
+                break;
+            case 6:
+                enqueueBarangGudang(&myQueue);
+                getch();
+                break;
             case 0:
                 break;
             default:
@@ -176,17 +209,18 @@ int main()
 
             break;
         case 4:
-            enqueueBarangGudang(&myQueue);
-            // popBarangJual(&head2);
+            system("cls");
+
+            printf("\nInorder traversal: \n");
+            tranverseTree(root);
             getch();
             break;
         case 5:
-            tranverseBarangGudang(myQueue);
+
             getch();
             break;
-
         case 0:
-            deleteList(head, head2, &head3, &myQueue);
+            deleteList(head, head2, &head3, &myQueue, &root);
             return 0;
             break;
 
@@ -267,8 +301,10 @@ void tranverseBarJul(barangJual *head2)
     pWalker = head2;
     while (pWalker != NULL)
     {
-        printf("%s\n", pWalker->namaBarJul);
-        printf("%d\n\n", pWalker->stok);
+        printf("id   : %d\n", pWalker->kodeBarJul);
+        printf("Nama : %s\n", pWalker->namaBarJul);
+        printf("Stok : %d\n", pWalker->stok);
+        printf("Harga satuan : %d\n\n", pWalker->harga);
         pWalker = pWalker->next;
     }
 }
@@ -289,10 +325,11 @@ void insertbarang(pelanggan **head, pelanggan *pPre, pelanggan *pNew)
     }
 }
 
-void insertP(pelanggan **head, barangJual **head2, stack *head3)
+void insertP(pelanggan **head, barangJual **head2, stack *head3, struct diskon **root)
 {
     system("cls");
 
+    int diskonBarang;
     char barang[MAX_LIMIT][MAX_LIMIT], choice;
     int jumlah[MAX_LIMIT], i, sum;
     i = 0;
@@ -322,8 +359,11 @@ void insertP(pelanggan **head, barangJual **head2, stack *head3)
             scanf("%d", &jumlah[i]);
             fflush(stdin);
 
-            decreaseStok(head2, barang, jumlah, i);       // kurangi stok
-            catatHarga(head2, barang, &total, i, jumlah); // pencatatan total harga tiap pelanggan
+            //Diskon
+            diskonBarang = searchNode(head2, (*root), barang, i);
+
+            decreaseStok(head2, barang, jumlah, i);                     // kurangi stok
+            catatHarga(head2, barang, &total, i, jumlah, diskonBarang); // pencatatan total harga tiap pelanggan
 
             i++;
             printf("\nTambah barang ? [y/n] ");
@@ -365,6 +405,7 @@ void insertP(pelanggan **head, barangJual **head2, stack *head3)
         {
             strcpy(temp->status, "-");
         }
+
         // catat barang yang dibeli
         for (int i = 0; i < sum; i++) // n barang relatif
         {
@@ -378,7 +419,7 @@ void insertP(pelanggan **head, barangJual **head2, stack *head3)
     }
 }
 
-void addBarangJual(barangJual **head2, queue *myQueue)
+void addBarangJual(barangJual **head2, queue *myQueue, struct diskon **root)
 {
     system("cls");
 
@@ -389,8 +430,9 @@ void addBarangJual(barangJual **head2, queue *myQueue)
         return;
     }
 
-    int n_stok, bulanExpired, tahunExpired;
+    int n_stok, bulanExpired, tahunExpired, persenDiskon;
     long long int harga;
+    char choiceDiskon;
 
     barangJual *temp, *pNew;
     barang *tempQueue;
@@ -424,6 +466,24 @@ void addBarangJual(barangJual **head2, queue *myQueue)
                 fflush(stdin);
                 scanf("%lld", &harga);
                 fflush(stdin);
+                printf("Ada diskon ? [y/n] : ");
+                fflush(stdin);
+                scanf("%c", &choiceDiskon);
+                fflush(stdin);
+
+                if (choiceDiskon == 'y' || choiceDiskon == 'Y')
+                {
+                    printf("Diskon sebesar (persen): ");
+                    fflush(stdin);
+                    scanf("%d", &persenDiskon);
+                    fflush(stdin);
+
+                    (*root) = insertNode((*root), tempQueue->kodeBarang, persenDiskon);
+                }
+                else
+                {
+                    printf("\n- Tidak ada diskon untuk barang ini -\n");
+                }
 
                 if ((*head2) == NULL) // menambah saat stok di market kosong
                 {
@@ -432,6 +492,7 @@ void addBarangJual(barangJual **head2, queue *myQueue)
                     if (temp != NULL)
                     {
                         temp->prev = NULL;
+                        temp->kodeBarJul = tempQueue->kodeBarang;
                         strcpy(temp->namaBarJul, tempQueue->namaBarang);
                         temp->stok = tempQueue->stokBarang;
                         temp->harga = harga;
@@ -452,6 +513,7 @@ void addBarangJual(barangJual **head2, queue *myQueue)
                     pNew = (barangJual *)malloc(sizeof(barangJual));
 
                     pNew->prev = NULL;
+                    pNew->kodeBarJul = tempQueue->kodeBarang;
                     strcpy(pNew->namaBarJul, tempQueue->namaBarang);
                     pNew->stok = tempQueue->stokBarang;
                     pNew->harga = harga;
@@ -475,7 +537,7 @@ void addBarangJual(barangJual **head2, queue *myQueue)
                     }
                 }
 
-                dequeueBarangGudang(myQueue);   // kurang stok gudang (dequeue)
+                dequeueBarangGudang(myQueue); // kurang stok gudang (dequeue)
             }
             else
                 break;
@@ -539,9 +601,11 @@ void decreaseStok(barangJual **head2, char barang[][MAX_LIMIT], int jumlah[], in
     }
 }
 
-void catatHarga(barangJual **head2, char barang[][MAX_LIMIT], long long int *total, int i, int jumlah[])
+void catatHarga(barangJual **head2, char barang[][MAX_LIMIT], long long int *total, int i, int jumlah[], int diskonBarang)
 {
     int cond;
+    float disc;
+    long long int sumDiskon, totalHarga;
     barangJual *temp;
     temp = (*head2);
 
@@ -556,8 +620,18 @@ void catatHarga(barangJual **head2, char barang[][MAX_LIMIT], long long int *tot
             cond = strcmp(temp->namaBarJul, barang[i]);
             if (cond == 0)
             {
+                // Total harga barang per satuannya
+                totalHarga = (temp->harga * jumlah[i]);
+
+                // Perhitungan diskon
+                disc = (float)diskonBarang / 100;
+
+                sumDiskon = disc * totalHarga;
+
+                totalHarga -= sumDiskon;
+
                 // Totalan
-                *total += (temp->harga * jumlah[i]);
+                *total += totalHarga;
                 break;
             }
 
@@ -756,12 +830,16 @@ void enqueueBarangGudang(queue *myQueue)
     }
     else
     {
-        int bulanExpired, tahunExpired, stokBarang;
+        int kodeBarang, bulanExpired, tahunExpired, stokBarang;
         char namaBarang[MAX_LIMIT];
 
         barang *temp;
         temp = (barang *)malloc(sizeof(barang));
 
+        fflush(stdin);
+        printf("Masukkan kode barang : ");
+        fflush(stdin);
+        scanf("%d", &kodeBarang);
         fflush(stdin);
         printf("Masukkan nama barang : ");
         fflush(stdin);
@@ -780,6 +858,7 @@ void enqueueBarangGudang(queue *myQueue)
         scanf("%d", &stokBarang);
         fflush(stdin);
 
+        temp->kodeBarang = kodeBarang;
         strcpy(temp->namaBarang, namaBarang);
         temp->expBulanBarang = bulanExpired;
         temp->expTahunBarang = tahunExpired;
@@ -825,7 +904,88 @@ void dequeueBarangGudang(queue *myQueue)
     }
 }
 
-void deleteList(pelanggan *head, barangJual *head2, stack *head3, queue *myQueue)
+// KELOLA DISKON (TREE)
+
+struct diskon *newNode(int id, int banyakDiskon)
+{
+    struct diskon *temp = (struct diskon *)malloc(sizeof(struct diskon));
+    temp->idBarangDiskon = id;
+    temp->persenDiskon = banyakDiskon;
+    temp->left = temp->right = NULL;
+    return temp;
+}
+
+struct diskon *insertNode(struct diskon *diskon, int id, int banyakDiskon)
+{
+    if (diskon == NULL)
+        return newNode(id, banyakDiskon);
+
+    if (id < diskon->idBarangDiskon)
+        diskon->left = insertNode(diskon->left, id, banyakDiskon);
+    else
+        diskon->right = insertNode(diskon->right, id, banyakDiskon);
+
+    return diskon;
+}
+
+int searchTree(struct diskon *root, int id)
+{
+    if (root == NULL)
+        return NULL;
+    if (id == root->idBarangDiskon)
+        return root->persenDiskon;
+    if (id < root->idBarangDiskon)
+        return searchTree(root->left, id);
+    if (id > root->idBarangDiskon)
+        return searchTree(root->right, id);
+}
+
+int searchNode(barangJual **head2, struct diskon *root, char barang[][MAX_LIMIT], int i)
+{
+    int cond, disc;
+    barangJual *temp;
+    temp = (*head2);
+
+    while (temp != NULL)
+    {
+        cond = strcmp(temp->namaBarJul, barang[i]);
+        if (cond == 0)
+        {
+            disc = searchTree(root, temp->kodeBarJul);
+
+            return disc;
+        }
+
+        temp = temp->next;
+    }
+}
+
+void tranverseTree(struct diskon *root)
+{
+    if (root != NULL)
+    {
+        tranverseTree(root->left);
+
+        printf("%d (%d%) -> ", root->idBarangDiskon, root->persenDiskon);
+
+        tranverseTree(root->right);
+    }
+}
+
+// Destroy List Program
+
+void deleteTree(struct diskon *delNode)
+{
+    if (delNode == NULL)
+        return;
+
+    deleteTree(delNode->left);
+    deleteTree(delNode->right);
+
+    free(delNode);
+}
+
+void deleteList(pelanggan *head, barangJual *head2, stack *head3, queue *myQueue, struct diskon **delNode)
 {
     pelanggan *pTemp;
     barangJual *pTemp2;
@@ -853,7 +1013,7 @@ void deleteList(pelanggan *head, barangJual *head2, stack *head3, queue *myQueue
         delete pTemp3;
     }
 
-    while (myQueue != 0)
+    while (myQueue->count != 0)
     {
         ptemp4 = myQueue->front;
         myQueue->front = myQueue->front->next;
@@ -863,4 +1023,7 @@ void deleteList(pelanggan *head, barangJual *head2, stack *head3, queue *myQueue
     myQueue->count = 0;
     myQueue->front = NULL;
     myQueue->rear = NULL;
+
+    deleteTree(*delNode);
+    *delNode = NULL;
 }
