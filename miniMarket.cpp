@@ -9,6 +9,8 @@
 // Data Pelanggan ===================================
 struct pelanggan
 {
+    int jam;
+    int menit;
     int kode;
     char barang[MAX_LIMIT][MAX_LIMIT];
     int jumlah[MAX_LIMIT];
@@ -257,9 +259,9 @@ void tranverse(pelanggan *head)
     // Date
     time_t t = time(NULL);
     struct tm tm = *localtime(&t);
-    printf("==================================================\n");
-    printf("\t\tLaporan Penjualan\n");
-    printf("==================================================\n");
+    printf("=======================================================\n");
+    printf("\t\t   Laporan Penjualan\n");
+    printf("=======================================================\n");
     printf("Tanggal: %02d-%02d-%d\n\n", tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900);
 
     //traverse linked list
@@ -268,9 +270,11 @@ void tranverse(pelanggan *head)
 
     pWalker = head;
 
-    printf("%-14s | %3s | %3s | %3s\n\n", "Barang Terjual", "Jumlah", "Total Harga", "Status");
+    printf("%3s | %-14s | %3s | %3s | %3s\n\n", "Waktu", "Barang Terjual", "Jumlah", "Total Harga", "Status");
     while (pWalker != NULL)
     {
+        printf("%d:%d |\n", pWalker->jam, pWalker->menit);
+
         for (int i = 0; pWalker->jumlah[i] != 0; i++)
         {
             if (strcmp(pWalker->barang[i], "invalid") == 0)
@@ -279,11 +283,11 @@ void tranverse(pelanggan *head)
             }
             else
             {
-                printf("%-14s | %d\n", pWalker->barang[i], pWalker->jumlah[i]);
+                printf("%3s | %-14s | %d\n", "     ", pWalker->barang[i], pWalker->jumlah[i]);
             }
         }
 
-        printf("%-14s   %3s  | %lld\t| %3s\n", "              ", "     ", pWalker->total, pWalker->status);
+        printf("%3s   %-14s   %3s  | %lld\t| %3s\n", "     ", "              ", "     ", pWalker->total, pWalker->status);
 
         printf("\n");
         pWalker = pWalker->next;
@@ -328,6 +332,9 @@ void insertbarang(pelanggan **head, pelanggan *pPre, pelanggan *pNew)
 void insertP(pelanggan **head, barangJual **head2, stack *head3, struct diskon **root)
 {
     system("cls");
+
+    time_t t = time(NULL); // Time untuk jam dan menit
+    struct tm tm = *localtime(&t);
 
     int diskonBarang;
     char barang[MAX_LIMIT][MAX_LIMIT], choice;
@@ -413,6 +420,8 @@ void insertP(pelanggan **head, barangJual **head2, stack *head3, struct diskon *
             temp->jumlah[i] = jumlah[i];
         }
         getch();
+        temp->jam = tm.tm_hour;
+        temp->menit = tm.tm_min;
         temp->total = total;
         temp->next = NULL;
         insertNode(head, cur, temp);
